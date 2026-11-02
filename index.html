@@ -415,7 +415,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.3)}
 <div class="scanlines"></div>
 
 <!-- HTML5 Audio Tag (Local) -->
-<audio id="bgAudio" src="Nyth.mp3" loop preload="auto"></audio>
+<audio id="bgAudio" src="Nyth.mp3" loop preload="auto" playsinline></audio>
 
 <div id="boot">
   <div class="boot-logo">NYTHERIS</div>
@@ -581,37 +581,55 @@ buttons.forEach(btn => {
 });
 
 /* ============================================================
-   AUDIO LOGIC (Auto-play on First Touch)
+   AUDIO LOGIC (Auto-play on First Touch - Guaranteed)
    ============================================================ */
 const audio = document.getElementById('bgAudio');
 const musicWidget = document.getElementById('musicWidget');
 let isPlaying = false;
-let hasInteracted = false;
+let audioUnlocked = false;
 
+// Attempt to play audio
 function playAudio() {
+  if (!audio.paused) return;
   audio.play().then(() => {
     isPlaying = true;
+    audioUnlocked = true;
     musicWidget.classList.add('playing');
-  }).catch(e => console.log('Audio block:', e));
+    
+    // Remove listeners only after success
+    window.removeEventListener('pointerdown', unlockAudio, true);
+    window.removeEventListener('touchstart', unlockAudio, true);
+    window.removeEventListener('touchend', unlockAudio, true);
+    window.removeEventListener('click', unlockAudio, true);
+  }).catch(e => {
+    console.log('Audio block prevented, will retry on next touch.', e);
+  });
 }
 
+// First touch anywhere on the screen unlocks the audio
 const unlockAudio = () => {
-  if (hasInteracted) return;
-  hasInteracted = true;
+  if (audioUnlocked) return;
   playAudio();
-  document.removeEventListener('touchstart', unlockAudio);
-  document.removeEventListener('click', unlockAudio);
 };
 
-document.addEventListener('touchstart', unlockAudio, { passive: true });
-document.addEventListener('click', unlockAudio, { passive: true });
+// Use Capture Phase (true) so it intercepts everything before buttons/inputs
+window.addEventListener('pointerdown', unlockAudio, { capture: true, passive: true });
+window.addEventListener('touchstart', unlockAudio, { capture: true, passive: true });
+window.addEventListener('touchend', unlockAudio, { capture: true, passive: true });
+window.addEventListener('click', unlockAudio, { capture: true, passive: true });
 
+// Sync UI with Audio state
 audio.addEventListener('play', () => { isPlaying = true; musicWidget.classList.add('playing'); });
 audio.addEventListener('pause', () => { isPlaying = false; musicWidget.classList.remove('playing'); });
 
+// Toggle button manual control
 function toggleMusic(event) {
   if (event) { event.stopPropagation(); event.preventDefault(); }
-  if (isPlaying) audio.pause(); else playAudio();
+  if (isPlaying) {
+    audio.pause();
+  } else {
+    playAudio();
+  }
 }
 
 /* ============================================================
@@ -885,19 +903,32 @@ function startAutomation(event) {
     
     if (!isRunning) return;
     
-    if (resObj.transport !== 'fail') {
+    if (resObj.transport === 'cors') {
+      if (resObj.status >= 200 && resObj.status < 300) {
+        success++; dispatched++;
+        const el = document.getElementById('successCount');
+        animateNumber(el, success - 1, success);
+        bump(el);
+        logMsg(`Node #${i} | ${actualOp.toUpperCase()} | အောင်မြင်ပါသည် (HTTP ${resObj.status})`, 'success', i);
+      } else {
+        fail++; dispatched++;
+        const el = document.getElementById('failCount');
+        animateNumber(el, fail - 1, fail);
+        bump(el);
+        logMsg(`Node #${i} | ${actualOp.toUpperCase()} | မအောင်မြင်ပါ (HTTP ${resObj.status})`, 'error', i);
+      }
+    } else if (resObj.transport === 'opaque') {
       success++; dispatched++;
       const el = document.getElementById('successCount');
       animateNumber(el, success - 1, success);
       bump(el);
-      const tag = resObj.transport === 'cors' ? `HTTP ${resObj.status}` : `Opaque (Sent)`;
-      logMsg(`Node #${i} | ${actualOp.toUpperCase()} | အောင်မြင်ပါသည် (${tag})`, 'success', i);
+      logMsg(`Node #${i} | ${actualOp.toUpperCase()} | ပို့ဆောင်ပြီးပါပြီ (အတည်ပြုလို့မရပါ - Opaque)`, 'success', i);
     } else {
       fail++; dispatched++;
       const el = document.getElementById('failCount');
       animateNumber(el, fail - 1, fail);
       bump(el);
-      logMsg(`Node #${i} | ${actualOp.toUpperCase()} | မအောင်မြင်ပါ (Network)`, 'error', i);
+      logMsg(`Node #${i} | ${actualOp.toUpperCase()} | မအောင်မြင်ပါ (Network Error)`, 'error', i);
     }
     
     updateProgress(); tickEta();
