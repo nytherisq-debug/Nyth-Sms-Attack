@@ -10,7 +10,7 @@
 
 :root{
   --bg-dark:#03050a;
-  --bg-panel:rgba(8, 12, 22, 0.35); /* More transparent */
+  --bg-panel:rgba(8, 12, 22, 0.35);
   --bg-input:rgba(0, 0, 0, 0.5);
   --border-subtle:rgba(255, 255, 255, 0.1);
   --border-glow:rgba(56, 189, 248, 0.4);
@@ -168,6 +168,9 @@ body.running .corner{opacity:1;width:22px;height:22px;filter:drop-shadow(0 0 10p
 .header{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding-bottom:2px}
 .brand{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
 
+/* ============================================================
+   LOGO ANIMATIONS (N is moving!)
+   ============================================================ */
 .logo-box{position:relative;width:40px;height:40px;border-radius:12px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
   background:rgba(0,0,0,0.7);border:1px solid rgba(56,189,248,.5);
@@ -183,11 +186,45 @@ body.running .logo-box{border-color:var(--accent-cyan);box-shadow:0 0 30px 0 rgb
 .logo-ring-outer{position:absolute;inset:0;width:100%;height:100%;animation:spin 15s linear infinite reverse}
 .logo-ring-outer circle{fill:none;stroke:rgba(56,189,248,.4);stroke-width:1;stroke-dasharray:2 4}
 
-.logo-n{position:relative;z-index:2;width:20px;height:20px;filter:drop-shadow(0 0 6px rgba(56,189,248,1))}
+/* FIX: spin keyframes were referenced but never defined — the three
+   .logo-ring / .logo-ring-outer / .logo-ring .r2 animations were silently
+   dropped by the browser. Default transform-origin (50% 50%) resolves to
+   each SVG element's box center, and the inner <circle> shares that center
+   in viewBox coords (22,22), so no transform-box override is required. */
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* The N itself floats & pulses */
+.logo-n{
+  position:relative;z-index:2;width:20px;height:20px;
+  animation: floatN 3s ease-in-out infinite, glowN 2s infinite alternate;
+}
+@keyframes floatN {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.05); }
+}
+@keyframes glowN {
+  0% { filter: drop-shadow(0 0 3px rgba(56,189,248,.8)); }
+  100% { filter: drop-shadow(0 0 10px rgba(56,189,248,1)) drop-shadow(0 0 15px rgba(168,85,247,.8)); }
+}
+
 .n-main,.n-red,.n-blue{fill:none;stroke-width:3.5;stroke-linecap:square;stroke-linejoin:miter}
 .n-main{stroke:url(#nGrad)}
-.n-red{stroke:var(--accent-rose);animation:glitchRed 2s infinite steps(1);opacity:0}
-.n-blue{stroke:var(--accent-cyan);animation:glitchBlue 2s infinite steps(1);opacity:0}
+/* Faster glitch frequency */
+.n-red{stroke:var(--accent-rose);animation:glitchRed 1.5s infinite steps(1);opacity:0}
+.n-blue{stroke:var(--accent-cyan);animation:glitchBlue 1.5s infinite steps(1);opacity:0}
+
+@keyframes glitchRed{
+  0%,85%,100%{transform:translate(0);opacity:0}
+  86%{transform:translate(-3px,-1px);opacity:.9}
+  88%{transform:translate(2px,1px);opacity:0}
+  90%{transform:translate(-2px,0);opacity:.9}
+  92%{transform:translate(0);opacity:0}}
+@keyframes glitchBlue{
+  0%,85%,100%{transform:translate(0);opacity:0}
+  86%{transform:translate(3px,1px);opacity:.9}
+  88%{transform:translate(-2px,-1px);opacity:0}
+  90%{transform:translate(2px,0);opacity:.9}
+  92%{transform:translate(0);opacity:0}}
 
 .logo-scan{position:absolute;inset:0;z-index:3;pointer-events:none;
   background:linear-gradient(180deg,transparent,rgba(125,211,252,1),transparent);
