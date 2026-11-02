@@ -807,11 +807,30 @@ function tickEta() {
 
 function normalizePhone(raw) { return String(raw).replace(/[^\d+]/g, '').replace(/^\+/, ''); }
 function detectOp(phone) {
-  const c = normalizePhone(phone);
-  if (c.startsWith('096') || c.startsWith('96') || c.startsWith('9596')) return 'mytel';
-  if (c.startsWith('097') || c.startsWith('97') || c.startsWith('9597')) return 'atom';
-  if (c.startsWith('092') || c.startsWith('94') || c.startsWith('9594') || c.startsWith('98') || c.startsWith('9598')) return 'mpt';
-  if (c.startsWith('099') || c.startsWith('99') || c.startsWith('9599')) return 'u9';
+  let c = normalizePhone(phone);
+  if (c.startsWith('95')) c = '0' + c.slice(2);
+  if (c.length === 9) c = '0' + c;
+  
+  // MYTEL
+  if (c.startsWith('0966') || c.startsWith('0967') || c.startsWith('0968') || c.startsWith('0969')) return 'mytel';
+  
+  // U9
+  if (c.startsWith('0995') || c.startsWith('0996') || c.startsWith('0997') || c.startsWith('0998') || c.startsWith('0999')) return 'u9';
+  
+  // ATOM
+  if (c.startsWith('0975') || c.startsWith('0976') || c.startsWith('0977') || c.startsWith('0978') || c.startsWith('0979')) return 'atom';
+  
+  // MPT
+  if (['0925', '0926', '0940', '0941', '0942', '0943', '0944', '0945'].some(p => c.startsWith(p))) return 'mpt';
+  if (['0950', '0951', '0952', '0953', '0954', '0955', '0956'].some(p => c.startsWith(p))) return 'mpt';
+  if (['0988', '0920', '0973', '0991'].some(p => c.startsWith(p))) return 'mpt';
+
+  // Fallback by prefix
+  if (c.startsWith('096')) return 'mytel';
+  if (c.startsWith('099')) return 'u9';
+  if (c.startsWith('097')) return 'atom';
+  if (c.startsWith('092') || c.startsWith('094') || c.startsWith('095') || c.startsWith('098')) return 'mpt';
+  
   return 'unknown';
 }
 
@@ -838,10 +857,10 @@ function validate() {
 
   // API Not Connected checks
   if (actualOp === 'atom') {
-    return { err: 'ATOM ဖုန်းနံပါတ်ဆိုရင် ATOM Api မချိတ်ဆက်ရသေးပါ။' };
+    return { err: 'ATOM Api မချိတ်ဆက်ရသေးပါ ။' };
   }
   if (actualOp === 'mpt') {
-    return { err: 'MPT ဖုန်းနံပါတ်ဆိုရင် MPT Api မချိတ်ဆက်ရသေးပါ။' };
+    return { err: 'MPT Api မချိတ်ဆက်ရသေးပါ ။' };
   }
 
   if (currentOp !== 'auto' && currentOp !== actualOp) {
