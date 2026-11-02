@@ -34,9 +34,7 @@ html,body{
 }
 body{display:flex;align-items:center;justify-content:center;padding:16px}
 
-/* ============================================================
-   BACKGROUND
-   ============================================================ */
+/* BACKGROUND */
 #net{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.7}
 .bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
   background-image:
@@ -87,8 +85,46 @@ body{display:flex;align-items:center;justify-content:center;padding:16px}
 @keyframes blinkSlow{50%{opacity:.35}}
 
 /* ============================================================
-   PREMIUM SHELL (Glassmorphism)
+   PREMIUM MUSIC WIDGET (Live Equalizer)
    ============================================================ */
+.music-widget {
+  position: absolute; top: 16px; right: 16px; z-index: 20;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(10, 15, 26, 0.6);
+  border: 1px solid var(--border-glow);
+  display: flex; align-items: center; justify-content: center; gap: 2px;
+  cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 0 15px rgba(56,189,248,0.2);
+  transition: all 0.3s ease;
+}
+.music-widget:active { transform: scale(0.9); }
+.music-widget:hover { border-color: var(--accent-cyan); box-shadow: 0 0 20px rgba(56,189,248,0.5); }
+
+/* The Bars inside */
+.music-bars { display: flex; align-items: flex-end; gap: 2px; height: 14px; }
+.music-bars span {
+  width: 3px; background: var(--text-muted); border-radius: 1px;
+  transition: background 0.3s;
+}
+.music-bars span:nth-child(1) { height: 6px; }
+.music-bars span:nth-child(2) { height: 12px; }
+.music-bars span:nth-child(3) { height: 8px; }
+.music-bars span:nth-child(4) { height: 4px; }
+
+/* When Playing */
+.music-widget.playing { border-color: var(--accent-cyan); box-shadow: 0 0 20px rgba(56,189,248,0.5); }
+.music-widget.playing .music-bars span { background: var(--accent-cyan); box-shadow: 0 0 5px var(--accent-cyan); animation: equalize 1s infinite alternate ease-in-out; }
+.music-widget.playing .music-bars span:nth-child(1) { animation-delay: 0s; }
+.music-widget.playing .music-bars span:nth-child(2) { animation-delay: 0.3s; }
+.music-widget.playing .music-bars span:nth-child(3) { animation-delay: 0.1s; }
+.music-widget.playing .music-bars span:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes equalize {
+  0% { height: 4px; }
+  100% { height: 14px; }
+}
+
+/* SHELL (Glassmorphism) */
 .shell{position:relative;z-index:2;display:flex;flex-direction:column;
   width:100%;max-width:440px;height:100%;max-height:720px;
   padding:16px;gap:10px;border-radius:24px;
@@ -105,7 +141,6 @@ body{display:flex;align-items:center;justify-content:center;padding:16px}
 }
 .shell::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
   background:linear-gradient(180deg,rgba(255,255,255,.08) 0,transparent 20%,transparent 80%,rgba(255,255,255,.02) 100%)}
-/* Scanning Line Effect over Shell */
 .shell::after {
   content: ''; position:absolute; top: -100%; left: 0; right: 0; height: 50%;
   background: linear-gradient(180deg, transparent, rgba(56, 189, 248, 0.15), transparent);
@@ -141,10 +176,9 @@ body.running .corner{opacity:1;width:26px;height:26px;filter:drop-shadow(0 0 10p
 .flex-shrink-0{flex-shrink:0}
 
 /* HEADER */
-.header{display:flex;align-items:center;justify-content:space-between}
+.header{display:flex;align-items:center;justify-content:space-between;padding-right: 48px; /* Space for music widget */}
 .brand{display:flex;align-items:center;gap:14px}
 
-/* Logo Box */
 .logo-box{position:relative;width:46px;height:46px;border-radius:14px;
   display:flex;align-items:center;justify-content:center;
   background:rgba(0,0,0,0.5);border:1px solid rgba(56,189,248,.4);
@@ -452,7 +486,6 @@ body:not(.running) .rec-dot{background:var(--text-dark);box-shadow:none;animatio
   overscroll-behavior:contain;user-select:text;-webkit-user-select:text;
   position:relative;}
   
-/* Log Console subtle moving grid */
 .log-console::before {
   content: ''; position: absolute; inset: 0; pointer-events: none;
   background-image: linear-gradient(rgba(56,189,248,.05) 1px, transparent 1px);
@@ -511,11 +544,8 @@ body:not(.running) .rec-dot{background:var(--text-dark);box-shadow:none;animatio
 <div class="light-beam b3"></div>
 <div class="scanlines"></div>
 
-<!-- 1. YouTube Iframe API -->
-<script src="https://www.youtube.com/iframe_api"></script>
-
-<!-- 2. Hidden Player Container (Zero Space & Absolute) -->
-<div id="yt-hidden-player" style="position:absolute; top:-100px; left:-100px; width:1px; height:1px; opacity:0; pointer-events:none; z-index:-999; overflow:hidden;"></div>
+<!-- HTML5 Audio Tag (Hidden) -->
+<audio id="bgAudio" src="Nyth.mp3" loop></audio>
 
 <div id="boot">
   <div class="boot-logo">NYTHERIS</div>
@@ -526,6 +556,13 @@ body:not(.running) .rec-dot{background:var(--text-dark);box-shadow:none;animatio
 <main class="shell">
   <span class="corner tl"></span><span class="corner tr"></span>
   <span class="corner bl"></span><span class="corner br"></span>
+
+  <!-- PREMIUM MUSIC WIDGET -->
+  <div class="music-widget" id="musicWidget" onclick="toggleMusic(event)">
+    <div class="music-bars">
+      <span></span><span></span><span></span><span></span>
+    </div>
+  </div>
 
   <header class="header flex-shrink-0">
     <div class="brand">
@@ -666,47 +703,49 @@ body:not(.running) .rec-dot{background:var(--text-dark);box-shadow:none;animatio
 'use strict';
 
 /* ============================================================
-   HIDDEN MUSIC LOGIC (Auto-play on First Touch)
+   AUDIO LOGIC (Local Nyth.mp3)
    ============================================================ */
-let ytPlayer;
+const audio = document.getElementById('bgAudio');
+const musicWidget = document.getElementById('musicWidget');
 let isPlaying = false;
-const YOUTUBE_VIDEO_ID = '5Rf0Xs50clY'; // သားကြီး ပေးထားတဲ့ ID
 
-function onYouTubeIframeAPIReady() {
-  ytPlayer = new YT.Player('yt-hidden-player', {
-    height: '1',
-    width: '1',
-    videoId: YOUTUBE_VIDEO_ID,
-    playerVars: {
-      'autoplay': 0,
-      'controls': 0,
-      'disablekb': 1,
-      'fs': 0,
-      'loop': 1,
-      'playlist': YOUTUBE_VIDEO_ID,
-      'playsinline': 1,
-      'origin': window.location.origin || 'https://www.youtube.com'
-    },
-    events: {
-      'onReady': onPlayerReady
-    }
-  });
-}
-
-function onPlayerReady(event) {
-  // မျက်နှာပြင်ကို ပထမဆုံး ထိလိုက်တာနဲ့ သီချင်းစဖွင့်မယ်
-  const startAudio = () => {
-    if (!isPlaying) {
-      event.target.playVideo();
+// မျက်နှာပြင်ကို ပထမဆုံး ထိလိုက်တာနဲ့ သီချင်းစဖွင့်မယ်
+const startAudio = () => {
+  if (!isPlaying) {
+    audio.play().then(() => {
       isPlaying = true;
-    }
-    // တစ်ခါပဲ အလုပ်လုပ်အောင်
-    document.body.removeEventListener('touchstart', startAudio);
-    document.body.removeEventListener('click', startAudio);
-  };
+      musicWidget.classList.add('playing');
+    }).catch(e => {
+      console.log('Autoplay blocked by browser:', e);
+    });
+  }
+  document.body.removeEventListener('touchstart', startAudio);
+  document.body.removeEventListener('click', startAudio);
+};
 
-  document.body.addEventListener('touchstart', startAudio, { passive: true });
-  document.body.addEventListener('click', startAudio, { passive: true });
+document.body.addEventListener('touchstart', startAudio, { passive: true });
+document.body.addEventListener('click', startAudio, { passive: true });
+
+// Audio Play/Pause Event များကို ဖတ်ပြီး UI ပြောင်းမယ်
+audio.addEventListener('play', () => {
+  isPlaying = true;
+  musicWidget.classList.add('playing');
+});
+
+audio.addEventListener('pause', () => {
+  isPlaying = false;
+  musicWidget.classList.remove('playing');
+});
+
+// ခလုတ်နှိပ်ရင် ဖွင့်/ရပ် လုပ်မယ်
+function toggleMusic(event) {
+  if (event) event.stopPropagation(); // Body click မဖြစ်အောင် တားဆီးမယ်
+  
+  if (isPlaying) {
+    audio.pause();
+  } else {
+    audio.play().catch(e => console.log('Play failed', e));
+  }
 }
 
 /* ============================================================
