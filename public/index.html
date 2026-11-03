@@ -33,7 +33,9 @@ html,body{
 }
 body{display:flex;align-items:center;justify-content:center;padding:12px}
 
-/* PREMIUM BACKGROUND */
+/* ============================================================
+   PREMIUM BACKGROUND
+   ============================================================ */
 #net{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.9}
 .bg-grid {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
@@ -91,7 +93,9 @@ body{display:flex;align-items:center;justify-content:center;padding:12px}
   mix-blend-mode: overlay;
 }
 
-/* BOOT */
+/* ============================================================
+   BOOT
+   ============================================================ */
 #boot{position:fixed;inset:0;z-index:99;background:var(--bg-dark);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
   transition:opacity .6s ease,visibility .6s ease}
@@ -104,7 +108,9 @@ body{display:flex;align-items:center;justify-content:center;padding:12px}
   animation:bootLoad 1.2s ease-in-out infinite}
 @keyframes bootLoad{0%{transform:translateX(-100%)}100%{transform:translateX(320%)}}
 
-/* SHELL */
+/* ============================================================
+   SHELL (Glassmorphism)
+   ============================================================ */
 .shell{position:relative;z-index:2;display:flex;flex-direction:column;
   width:100%;max-width:400px;
   height:auto;
@@ -144,6 +150,7 @@ body.running .shell{
   100% { box-shadow: 0 0 120px -10px rgba(56,189,248,.9); }
 }
 
+/* TAPPED ANIMATION */
 .shell.tapped { animation: shellTap 0.3s ease-out; }
 @keyframes shellTap { 0% { transform: scale(1); } 50% { transform: scale(0.98); } 100% { transform: scale(1); } }
 
@@ -161,6 +168,9 @@ body.running .corner{opacity:1;width:22px;height:22px;filter:drop-shadow(0 0 10p
 .header{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding-bottom:2px}
 .brand{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
 
+/* ============================================================
+   LOGO ANIMATIONS (N is moving!)
+   ============================================================ */
 .logo-box{position:relative;width:40px;height:40px;border-radius:12px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
   background:rgba(0,0,0,0.7);border:1px solid rgba(56,189,248,.5);
@@ -228,8 +238,10 @@ body.running .logo-box{border-color:var(--accent-cyan);box-shadow:0 0 30px 0 rgb
   color:#cbd5e1;letter-spacing:.05em;margin:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
+/* Utilities Group (Music + Status) */
 .utilities{display:flex;align-items:center;gap:6px;flex-shrink:0}
 
+/* Music Widget */
 .music-widget{
   position:relative;width:32px;height:32px;
   display:flex;align-items:center;justify-content:center;
@@ -262,6 +274,7 @@ body.running .logo-box{border-color:var(--accent-cyan);box-shadow:0 0 30px 0 rgb
 
 @keyframes equalize{0%{height:3px;opacity:0.6}100%{height:14px;opacity:1}}
 
+/* Status Badge */
 .status-badge{
   display:flex;align-items:center;gap:5px;
   padding:5px 8px;border-radius:6px;
@@ -276,6 +289,7 @@ body.running .status-dot{background:var(--accent-cyan);box-shadow:0 0 10px var(-
 .status-text{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.08em;color:#cbd5e1}
 body.running .status-text{color:var(--accent-cyan)}
 
+/* PROGRESS */
 .arc-wrap{position:relative}
 .arc-ticks{display:flex;gap:2px;margin-bottom:4px;height:4px}
 .arc-ticks .tick{flex:1;background:rgba(255,255,255,.1);border-radius:1px;transition:all .3s}
@@ -295,6 +309,7 @@ body.running .status-text{color:var(--accent-cyan)}
   color:#cbd5e1;letter-spacing:.08em}
 .arc-meta strong{color:var(--text-main);font-weight:700}
 
+/* FORM */
 .form-group{display:flex;flex-direction:column;gap:10px}
 .input-group{position:relative;display:flex;flex-direction:column;gap:4px;min-width:0}
 .label-row{display:flex;justify-content:space-between;align-items:center;gap:4px}
@@ -345,6 +360,7 @@ label{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;
 
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
+/* BUTTONS */
 .actions{display:flex;gap:8px;margin-top:4px}
 .btn-primary{flex:1;padding:12px 8px;border-radius:10px;border:1px solid rgba(56,189,248,.6);
   background:linear-gradient(180deg,rgba(11,18,32,0.9),rgba(8,12,21,0.9));
@@ -361,8 +377,18 @@ label{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;
 .btn-primary.engine-active::after{animation:shine 1.5s infinite}
 @keyframes shine{100%{left:200%}}
 
-.ripple {position: absolute;border-radius: 50%;background: rgba(56, 189, 248, 0.5);transform: scale(0);animation: ripple-anim 0.6s linear;pointer-events: none;}
-@keyframes ripple-anim {to { transform: scale(4); opacity: 0; }}
+/* Ripple Effect */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.5);
+  transform: scale(0);
+  animation: ripple-anim 0.6s linear;
+  pointer-events: none;
+}
+@keyframes ripple-anim {
+  to { transform: scale(4); opacity: 0; }
+}
 
 .btn-danger{padding:12px 14px;border-radius:10px;border:1px solid rgba(244,63,94,.5);
   background:rgba(244,63,94,.15);color:var(--accent-rose);
@@ -372,6 +398,7 @@ label{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;
 .btn-danger:active:not(:disabled){transform:scale(.98)}
 .btn-danger:disabled{opacity:.2;cursor:not-allowed;transform:none}
 
+/* STATS */
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .stat-box{position:relative;padding:10px 12px;border-radius:10px;
   background:linear-gradient(180deg,rgba(5,8,16,.7),rgba(3,6,12,.5));
@@ -398,6 +425,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
 .stat-err .stat-underline::after{background:linear-gradient(90deg,var(--accent-rose),transparent)}
 @keyframes pulseBar{0%,100%{transform:scaleX(.3)}50%{transform:scaleX(1)}}
 
+/* LOG (Compact, Fixed Height) */
 .log-section{
   display:flex;flex-direction:column;
   margin-top:2px;
@@ -447,6 +475,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
   background:currentColor;margin-left:4px;animation:blinkCursor 1s step-end infinite;vertical-align:middle}
 @keyframes blinkCursor{50%{opacity:0}}
 
+/* MOBILE TWEAKS */
 @media (max-height:720px){
   .shell{padding:14px;gap:10px}
   .input-field{padding:8px 10px}
@@ -456,7 +485,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
 </head>
 <body>
 
-<!-- BG -->
+<!-- PREMIUM BG -->
 <canvas id="net"></canvas>
 <div class="bg-grid"></div>
 <div class="aurora aurora-1"></div>
@@ -467,7 +496,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
 <div class="light-beam b3"></div>
 <div class="scanlines"></div>
 
-<!-- Audio -->
+<!-- HTML5 Audio Tag (Local) -->
 <audio id="bgAudio" src="Nyth.mp3" loop preload="auto" playsinline></audio>
 
 <div id="boot">
@@ -522,7 +551,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
     </div>
   </header>
 
-  <div class="arc-wrap flex-shrink-0">
+  <div class="arc-wrap flex-shrink-0" id="progressWrap">
     <div class="arc-ticks" id="arcTicks"></div>
     <div class="arc-track"><div id="arcFill"></div></div>
     <div class="arc-meta">
@@ -570,7 +599,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
     <button id="stopBtn" class="btn-danger" onclick="stopAutomation(event)" disabled>ABORT</button>
   </div>
 
-  <div class="stats flex-shrink-0">
+  <div class="stats flex-shrink-0" id="statsWrap">
     <div class="stat-box stat-ok">
       <div class="stat-title">Dispatched</div>
       <div class="stat-val" id="successCount">0</div>
@@ -800,10 +829,25 @@ function setOperator(op) {
     delayInput.disabled = true; 
     delayInput.style.opacity = "0.7";
     delayInput.value = "2.0";
+    
+    // Dispatched နဲ့ Exceptions ကို ဖျောက်မယ်
+    document.getElementById('statsWrap').style.display = 'none';
+    document.getElementById('progressWrap').style.display = 'none';
+    
+    // Owner Name ကို @Nytheris_q အဖြစ် ပြမယ်
+    document.querySelector('.subtitle').textContent = '@Nytheris_q';
+    document.querySelector('.subtitle').style.color = 'var(--accent-green)';
+    
   } else {
     delayInput.min = "0";
     delayInput.disabled = false;
     delayInput.style.opacity = "1";
+    
+    document.getElementById('statsWrap').style.display = 'grid';
+    document.getElementById('progressWrap').style.display = 'block';
+    
+    document.querySelector('.subtitle').textContent = 'ကျော်ကြီးက ချစ်တတ်တယ်';
+    document.querySelector('.subtitle').style.color = '#cbd5e1';
   }
 }
 
@@ -874,6 +918,8 @@ function updateUI(running) {
 }
 
 function updateProgress() {
+  if (currentOp === 'wave') return; // Wave မှာ Progress မပြဘူး
+  
   const pct = sessionTotal > 0 ? Math.min(100, (dispatched / sessionTotal) * 100) : 0;
   document.getElementById('arcFill').style.width = pct + '%';
   document.getElementById('arcPct').textContent = Math.round(pct) + '%';
@@ -887,6 +933,7 @@ function updateProgress() {
 }
 
 function tickEta() {
+  if (currentOp === 'wave') return;
   if (!sessionStart || !sessionTotal) return;
   const elapsed = (Date.now() - sessionStart) / 1000;
   const per = dispatched > 0 ? elapsed / dispatched : sessionDelay;
@@ -958,7 +1005,6 @@ function startAutomation(event) {
     let resObj = { success: false };
     
     try {
-      // WAVE API VIA RAILWAY BACKEND (Timeout ကို ၅ စက္ကန့်ပဲ ထားမယ်)
       const controller = new AbortController();
       const reqTimeout = setTimeout(() => controller.abort(), 5000);
 
@@ -982,15 +1028,19 @@ function startAutomation(event) {
     
     if (resObj.success) {
       success++; dispatched++;
-      const el = document.getElementById('successCount');
-      animateNumber(el, success - 1, success);
-      bump(el);
+      if(currentOp !== 'wave'){
+        const el = document.getElementById('successCount');
+        animateNumber(el, success - 1, success);
+        bump(el);
+      }
       logMsg(`Node #${i} | အောင်မြင်ပါသည် ✅`, 'success', i);
     } else {
       dispatched++;
       fail++;
-      const el = document.getElementById('failCount');
-      el.textContent = String(fail);
+      if(currentOp !== 'wave'){
+        const el = document.getElementById('failCount');
+        el.textContent = String(fail);
+      }
     }
     
     updateProgress(); tickEta();
