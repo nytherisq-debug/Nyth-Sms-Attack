@@ -995,7 +995,7 @@ function startAutomation(event) {
     
     const i = currentIdx;
     
-    logMsg(`Node #${i} | ပို့ဆောင်နေပါသည်...`, 'info', i);
+    // ပို့ဆောင်နေပါသည် ဆိုတဲ့ စာသားကို ဖျောက်ထားပါတယ် (မပြဘူး)
     
     let resObj = { success: false };
     
@@ -1027,14 +1027,15 @@ function startAutomation(event) {
       const el = document.getElementById('successCount');
       animateNumber(el, success - 1, success);
       bump(el);
+      // အောင်မြင်တဲ့အခါမှ ပြမယ်
       logMsg(`Node #${i} | အောင်မြင်ပါသည် ✅`, 'success', i);
     } else {
-      // Proxy ကျရင် Log မပြဘူး
+      // မအောင်မြင်ရင် ဘာမှ မပြဘူး
       dispatched++;
+      // အတွင်းပိုင်း Error စာရင်းထဲ ထည့်ထားမယ် (မပြဘူး)
       const el = document.getElementById('failCount');
-      animateNumber(el, fail, fail); 
-      // ရှုံးတဲ့အရေအတွက်ကို နောက်ကွယ်ကနေ တွက်ထားမယ် (မပြဘူး)
-      // ဒါပေမဲ့ Progress အတွက် dispatched ကို တိုးထားရမယ်
+      fail++;
+      el.textContent = String(fail); 
     }
     
     updateProgress(); tickEta();
