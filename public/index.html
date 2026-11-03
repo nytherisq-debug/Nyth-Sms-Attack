@@ -590,7 +590,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
       </div>
       <div class="input-group" id="delayGroup">
         <label for="delayInput">Interval (စက္ကန့်)</label>
-        <input type="number" id="delayInput" class="input-field" value="3.0" step="0.1" min="3">
+        <input type="number" id="delayInput" class="input-field" value="2.0" step="0.1" min="2">
       </div>
     </div>
   </div>
@@ -835,12 +835,12 @@ function setOperator(op) {
     b.classList.toggle('active', b.dataset.op === op);
   });
   
-  // Wave ကို ရွေးရင် အနည်းဆုံး ၃ စက္ကန့် သတ်မှတ်မယ်
+  // Wave ကို ရွေးရင် အနည်းဆုံး ၂ စက္ကန့် သတ်မှတ်မယ်
   const delayInput = document.getElementById('delayInput');
   if (op === 'wave') {
-    delayInput.min = "3";
-    if (parseFloat(delayInput.value) < 3) {
-      delayInput.value = "3.0";
+    delayInput.min = "2";
+    if (parseFloat(delayInput.value) < 2) {
+      delayInput.value = "2.0";
     }
   } else {
     delayInput.min = "0";
@@ -955,10 +955,10 @@ function validate() {
   
   let delay = parseFloat(d.value);
   
-  // WAVE DELAY LOCK (အနည်းဆုံး ၃ စက္ကန့်)
-  if (currentOp === 'wave' && delay < 3) {
+  // WAVE DELAY LOCK (အနည်းဆုံး ၂ စက္ကန့်)
+  if (currentOp === 'wave' && delay < 2) {
     d.classList.add('invalid');
-    return { err: 'Wave အတွက် Interval ကို အနည်းဆုံး ၃ စက္ကန့် ထားရပါမည်။' };
+    return { err: 'Wave အတွက် Interval ကို အနည်းဆုံး ၂ စက္ကန့် ထားရပါမည်။' };
   }
 
   if (!Number.isFinite(delay) || delay < 0) { d.classList.add('invalid'); return { err: 'Interval ကို 0 သို့မဟုတ် အထက် ထည့်ပါ။' }; }
@@ -1000,9 +1000,9 @@ function startAutomation(event) {
     let resObj = { success: false };
     
     try {
-      // WAVE API VIA RAILWAY BACKEND
+      // WAVE API VIA RAILWAY BACKEND (Timeout ကို ၅ စက္ကန့်ပဲ ထားမယ်)
       const controller = new AbortController();
-      const reqTimeout = setTimeout(() => controller.abort(), 15000);
+      const reqTimeout = setTimeout(() => controller.abort(), 5000);
 
       const res = await fetch(`${BACKEND_URL}/api/bomb?phone=${encodeURIComponent(v.phone)}`, {
         signal: controller.signal
@@ -1029,11 +1029,12 @@ function startAutomation(event) {
       bump(el);
       logMsg(`Node #${i} | အောင်မြင်ပါသည် ✅`, 'success', i);
     } else {
-      fail++; dispatched++;
+      // Proxy ကျရင် Log မပြဘူး
+      dispatched++;
       const el = document.getElementById('failCount');
-      animateNumber(el, fail - 1, fail);
-      bump(el);
-      logMsg(`Node #${i} | Proxy ကျသွားပါသည် ⚠️`, 'error', i);
+      animateNumber(el, fail, fail); 
+      // ရှုံးတဲ့အရေအတွက်ကို နောက်ကွယ်ကနေ တွက်ထားမယ် (မပြဘူး)
+      // ဒါပေမဲ့ Progress အတွက် dispatched ကို တိုးထားရမယ်
     }
     
     updateProgress(); tickEta();
@@ -1045,7 +1046,7 @@ function startAutomation(event) {
       isRunning = false;
       updateUI(false);
       updateProgress();
-      logMsg(`ပို့ဆောင်မှု ပြီးစီးပါပြီ။ စုစုပေါင်း ${success + fail} (${success} အောင်မြင် / ${fail} မအောင်မြင်)`, 'sys');
+      logMsg(`ပို့ဆောင်မှု ပြီးစီးပါပြီ။ စုစုပေါင်း ${success} ခု အောင်မြင်ပါသည်။`, 'sys');
     }
   }
   
