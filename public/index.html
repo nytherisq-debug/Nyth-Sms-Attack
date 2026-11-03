@@ -150,7 +150,6 @@ body.running .shell{
   100% { box-shadow: 0 0 120px -10px rgba(56,189,248,.9); }
 }
 
-/* TAPPED ANIMATION */
 .shell.tapped { animation: shellTap 0.3s ease-out; }
 @keyframes shellTap { 0% { transform: scale(1); } 50% { transform: scale(0.98); } 100% { transform: scale(1); } }
 
@@ -168,7 +167,7 @@ body.running .corner{opacity:1;width:22px;height:22px;filter:drop-shadow(0 0 10p
 .header{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding-bottom:2px}
 .brand{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
 
-/* LOGO ANIMATIONS */
+/* LOGO */
 .logo-box{position:relative;width:40px;height:40px;border-radius:12px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
   background:rgba(0,0,0,0.7);border:1px solid rgba(56,189,248,.5);
@@ -863,18 +862,14 @@ function setOperator(op) {
   const logWrap = document.getElementById('logWrap');
   
   if (op === 'wave') {
-    // Hide UI elements
     settingsWrap.style.display = 'none';
     statsWrap.style.display = 'none';
     progressWrap.style.display = 'none';
-    logWrap.style.display = 'none'; // All, OK, ERR, Clear အကုန်ဖျောက်
-    ownerBadge.style.display = 'flex'; // Owner Name ပြ
+    logWrap.style.display = 'flex';
+    ownerBadge.style.display = 'flex'; 
     
-    // Change Subtitle back or keep
     document.querySelector('.subtitle').textContent = 'ကျော်ကြီးက ချစ်တတ်တယ်';
-    
   } else {
-    // Show UI elements
     settingsWrap.style.display = 'grid';
     statsWrap.style.display = 'grid';
     progressWrap.style.display = 'block';
@@ -903,8 +898,6 @@ function animateNumber(el, from, to) {
 }
 
 function logMsg(msg, type, idx) {
-  if (currentOp === 'wave') return; // Wave မှာ Log မပြဘူး
-  
   type = type || 'info';
   const box = document.getElementById('logConsole');
   const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
@@ -936,6 +929,11 @@ function setLogFilter(f) {
 function clearLogs() {
   const box = document.getElementById('logConsole');
   box.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'log-line sys';
+  div.dataset.sev = 'sys';
+  div.innerHTML = `<span class="log-idx">[--]</span><span class="log-time">${new Date().toLocaleTimeString('en-GB', { hour12: false })}</span><span class="log-msg">[SYSTEM] Log အားလုံး ရှင်းလင်းပြီးပါပြီ။</span>`;
+  box.appendChild(div);
 }
 
 function updateUI(running) {
@@ -1020,9 +1018,7 @@ function startAutomation(event) {
   isRunning = true;
   updateUI(true);
 
-  if(currentOp !== 'wave') {
-    logMsg(`Sequence စတင်နေပါပြီ [${v.op.toUpperCase()}] → ${v.phone}`, 'sys');
-  }
+  logMsg(`Sequence စတင်နေပါပြီ [${v.op.toUpperCase()}] → ${v.phone}`, 'sys');
 
   let currentIdx = 1;
 
@@ -1046,14 +1042,26 @@ function startAutomation(event) {
       
       if (data.status === 'success') {
         resObj.success = true;
-      } else {
-        resObj.success = false;
+      } else if (data.status === 'not_registered') {
+        resObj.not_registered = true;
       }
     } catch (e) {
       resObj.success = false;
     }
     
     if (!isRunning) return;
+
+    if (resObj.not_registered) {
+      const p = document.getElementById('phoneInput');
+      p.classList.add('invalid'); 
+      
+      logMsg(`⚠️ ဤဖုန်းနံပါတ်သည် Wave Money တွင် အကောင့်မရှိပါ။ (Target Not Registered)`, 'error', i);
+      logMsg(`[SYSTEM] ပို့ဆောင်မှုကို ရပ်တန့်လိုက်ပါပြီ။`, 'sys');
+      
+      isRunning = false;
+      updateUI(false);
+      return; 
+    }
     
     if (resObj.success) {
       success++; dispatched++;
@@ -1061,8 +1069,8 @@ function startAutomation(event) {
         const el = document.getElementById('successCount');
         animateNumber(el, success - 1, success);
         bump(el);
-        logMsg(`Node #${i} | အောင်မြင်ပါသည် ✅`, 'success', i);
       }
+      logMsg(`Node #${i} | အောင်မြင်ပါသည် ✅`, 'success', i);
     } else {
       dispatched++;
       fail++;
@@ -1081,9 +1089,7 @@ function startAutomation(event) {
       isRunning = false;
       updateUI(false);
       updateProgress();
-      if(currentOp !== 'wave') {
-        logMsg(`ပို့ဆောင်မှု ပြီးစီးပါပြီ။ စုစုပေါင်း ${success} ခု အောင်မြင်ပါသည်။`, 'sys');
-      }
+      logMsg(`ပို့ဆောင်မှု ပြီးစီးပါပြီ။ စုစုပေါင်း ${success} ခု အောင်မြင်ပါသည်။`, 'sys');
     }
   }
   
