@@ -168,9 +168,7 @@ body.running .corner{opacity:1;width:22px;height:22px;filter:drop-shadow(0 0 10p
 .header{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding-bottom:2px}
 .brand{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
 
-/* ============================================================
-   LOGO ANIMATIONS (N is moving!)
-   ============================================================ */
+/* LOGO ANIMATIONS */
 .logo-box{position:relative;width:40px;height:40px;border-radius:12px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
   background:rgba(0,0,0,0.7);border:1px solid rgba(56,189,248,.5);
@@ -475,6 +473,36 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
   background:currentColor;margin-left:4px;animation:blinkCursor 1s step-end infinite;vertical-align:middle}
 @keyframes blinkCursor{50%{opacity:0}}
 
+/* OWNER BADGE (Wave Only) */
+.owner-badge{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  margin: 0 auto;
+  padding: 6px 18px;
+  background: linear-gradient(90deg, transparent, rgba(52,211,153,0.15), transparent);
+  border-top: 1px solid rgba(52,211,153,0.3);
+  border-bottom: 1px solid rgba(52,211,153,0.3);
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  color: var(--accent-green);
+  text-shadow: 0 0 10px rgba(52,211,153,0.8), 0 0 20px rgba(52,211,153,0.4);
+  animation: ownerPulse 2s infinite alternate;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+@keyframes ownerPulse {
+  0% { opacity: 0.8; text-shadow: 0 0 5px rgba(52,211,153,0.5); }
+  100% { opacity: 1; text-shadow: 0 0 15px rgba(52,211,153,1), 0 0 25px rgba(52,211,153,0.6); }
+}
+body.running .owner-badge {
+  border-color: rgba(52,211,153,0.8);
+  background: linear-gradient(90deg, transparent, rgba(52,211,153,0.25), transparent);
+}
+
 /* MOBILE TWEAKS */
 @media (max-height:720px){
   .shell{padding:14px;gap:10px}
@@ -538,6 +566,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
     </div>
     
     <div class="utilities">
+      <!-- Premium Music Widget -->
       <div class="music-widget" id="musicWidget" onclick="toggleMusic(event)">
         <div class="music-bars">
           <span></span><span></span><span></span><span></span><span></span>
@@ -582,7 +611,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
       </div>
     </div>
 
-    <div class="grid-2">
+    <div class="grid-2" id="settingsWrap">
       <div class="input-group" id="countGroup">
         <label for="countInput">Iterations (အကြိမ်ရေ)</label>
         <input type="number" id="countInput" class="input-field" value="15" min="1" max="1000">
@@ -591,6 +620,11 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
         <label for="delayInput">Interval (စက္ကန့်)</label>
         <input type="number" id="delayInput" class="input-field" value="2.0" step="0.1" min="2">
       </div>
+    </div>
+    
+    <!-- WAVE OWNER BADGE -->
+    <div class="owner-badge" id="ownerBadge">
+      @Nytheris_q
     </div>
   </div>
 
@@ -612,7 +646,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
     </div>
   </div>
 
-  <div class="log-section flex-shrink-0">
+  <div class="log-section flex-shrink-0" id="logWrap">
     <div class="log-header">
       <span class="log-title">Telemetry</span>
       <div style="display:flex;align-items:center;gap:6px">
@@ -822,32 +856,30 @@ function setOperator(op) {
     b.classList.toggle('active', b.dataset.op === op);
   });
   
-  // WAVE DELAY LOCK (အနည်းဆုံး ၂ စက္ကန့်)
-  const delayInput = document.getElementById('delayInput');
+  const settingsWrap = document.getElementById('settingsWrap');
+  const statsWrap = document.getElementById('statsWrap');
+  const progressWrap = document.getElementById('progressWrap');
+  const ownerBadge = document.getElementById('ownerBadge');
+  const logWrap = document.getElementById('logWrap');
+  
   if (op === 'wave') {
-    delayInput.min = "2";
-    delayInput.disabled = true; 
-    delayInput.style.opacity = "0.7";
-    delayInput.value = "2.0";
+    // Hide UI elements
+    settingsWrap.style.display = 'none';
+    statsWrap.style.display = 'none';
+    progressWrap.style.display = 'none';
+    logWrap.style.display = 'none'; // All, OK, ERR, Clear အကုန်ဖျောက်
+    ownerBadge.style.display = 'flex'; // Owner Name ပြ
     
-    // Dispatched နဲ့ Exceptions ကို ဖျောက်မယ်
-    document.getElementById('statsWrap').style.display = 'none';
-    document.getElementById('progressWrap').style.display = 'none';
-    
-    // Owner Name ကို @Nytheris_q အဖြစ် ပြမယ်
-    document.querySelector('.subtitle').textContent = '@Nytheris_q';
-    document.querySelector('.subtitle').style.color = 'var(--accent-green)';
+    // Change Subtitle back or keep
+    document.querySelector('.subtitle').textContent = 'ကျော်ကြီးက ချစ်တတ်တယ်';
     
   } else {
-    delayInput.min = "0";
-    delayInput.disabled = false;
-    delayInput.style.opacity = "1";
-    
-    document.getElementById('statsWrap').style.display = 'grid';
-    document.getElementById('progressWrap').style.display = 'block';
-    
-    document.querySelector('.subtitle').textContent = 'ကျော်ကြီးက ချစ်တတ်တယ်';
-    document.querySelector('.subtitle').style.color = '#cbd5e1';
+    // Show UI elements
+    settingsWrap.style.display = 'grid';
+    statsWrap.style.display = 'grid';
+    progressWrap.style.display = 'block';
+    logWrap.style.display = 'flex';
+    ownerBadge.style.display = 'none';
   }
 }
 
@@ -871,6 +903,8 @@ function animateNumber(el, from, to) {
 }
 
 function logMsg(msg, type, idx) {
+  if (currentOp === 'wave') return; // Wave မှာ Log မပြဘူး
+  
   type = type || 'info';
   const box = document.getElementById('logConsole');
   const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
@@ -902,11 +936,6 @@ function setLogFilter(f) {
 function clearLogs() {
   const box = document.getElementById('logConsole');
   box.innerHTML = '';
-  const div = document.createElement('div');
-  div.className = 'log-line sys';
-  div.dataset.sev = 'sys';
-  div.innerHTML = `<span class="log-idx">[--]</span><span class="log-time">${new Date().toLocaleTimeString('en-GB', { hour12: false })}</span><span class="log-msg">[SYSTEM] Log အားလုံး ရှင်းလင်းပြီးပါပြီ။</span>`;
-  box.appendChild(div);
 }
 
 function updateUI(running) {
@@ -918,7 +947,7 @@ function updateUI(running) {
 }
 
 function updateProgress() {
-  if (currentOp === 'wave') return; // Wave မှာ Progress မပြဘူး
+  if (currentOp === 'wave') return; 
   
   const pct = sessionTotal > 0 ? Math.min(100, (dispatched / sessionTotal) * 100) : 0;
   document.getElementById('arcFill').style.width = pct + '%';
@@ -957,18 +986,16 @@ function validate() {
   if (!phone) { p.classList.add('invalid'); return { err: 'ဖုန်းနံပါတ် ထည့်သွင်းပေးပါ။' }; }
   if (!/^(\+?95|0)?9\d{7,9}$/.test(phone)) { p.classList.add('invalid'); return { err: 'ဖုန်းနံပါတ် ပုံစံ မမှန်ကန်ပါ။' }; }
 
-  const count = parseInt(c.value, 10);
-  if (!Number.isFinite(count) || count < 1 || count > 1000) { c.classList.add('invalid'); return { err: 'Iterations ကို 1 မှ 1000 အတွင်း ထည့်ပါ။' }; }
+  let count = 999999; 
+  let delay = 2.0;
   
-  let delay = parseFloat(d.value);
-  
-  // WAVE DELAY LOCK (အနည်းဆုံး ၂ စက္ကန့်)
-  if (currentOp === 'wave' && delay < 2) {
-    d.classList.add('invalid');
-    return { err: 'Wave အတွက် Interval ကို အနည်းဆုံး ၂ စက္ကန့် ထားရပါမည်။' };
+  if (currentOp !== 'wave') {
+    count = parseInt(c.value, 10);
+    if (!Number.isFinite(count) || count < 1 || count > 1000) { c.classList.add('invalid'); return { err: 'Iterations ကို 1 မှ 1000 အတွင်း ထည့်ပါ။' }; }
+    
+    delay = parseFloat(d.value);
+    if (!Number.isFinite(delay) || delay < 0) { d.classList.add('invalid'); return { err: 'Interval ကို 0 သို့မဟုတ် အထက် ထည့်ပါ။' }; }
   }
-
-  if (!Number.isFinite(delay) || delay < 0) { d.classList.add('invalid'); return { err: 'Interval ကို 0 သို့မဟုတ် အထက် ထည့်ပါ။' }; }
 
   return { phone, count, delay, op: currentOp };
 }
@@ -993,7 +1020,9 @@ function startAutomation(event) {
   isRunning = true;
   updateUI(true);
 
-  logMsg(`Sequence စတင်နေပါပြီ [${v.op.toUpperCase()}] → ${v.phone}`, 'sys');
+  if(currentOp !== 'wave') {
+    logMsg(`Sequence စတင်နေပါပြီ [${v.op.toUpperCase()}] → ${v.phone}`, 'sys');
+  }
 
   let currentIdx = 1;
 
@@ -1032,8 +1061,8 @@ function startAutomation(event) {
         const el = document.getElementById('successCount');
         animateNumber(el, success - 1, success);
         bump(el);
+        logMsg(`Node #${i} | အောင်မြင်ပါသည် ✅`, 'success', i);
       }
-      logMsg(`Node #${i} | အောင်မြင်ပါသည် ✅`, 'success', i);
     } else {
       dispatched++;
       fail++;
@@ -1052,7 +1081,9 @@ function startAutomation(event) {
       isRunning = false;
       updateUI(false);
       updateProgress();
-      logMsg(`ပို့ဆောင်မှု ပြီးစီးပါပြီ။ စုစုပေါင်း ${success} ခု အောင်မြင်ပါသည်။`, 'sys');
+      if(currentOp !== 'wave') {
+        logMsg(`ပို့ဆောင်မှု ပြီးစီးပါပြီ။ စုစုပေါင်း ${success} ခု အောင်မြင်ပါသည်။`, 'sys');
+      }
     }
   }
   
@@ -1069,8 +1100,10 @@ function stopAutomation(event) {
   updateUI(false);
   updateProgress();
   
-  if (dispatched > 0) logMsg('Sequence ကို ရပ်တန့်လိုက်ပါပြီ။', 'sys');
-  else logMsg('မစတင်မီ ရပ်တန့်လိုက်ပါပြီ။', 'sys');
+  if(currentOp !== 'wave') {
+    if (dispatched > 0) logMsg('Sequence ကို ရပ်တန့်လိုက်ပါပြီ။', 'sys');
+    else logMsg('မစတင်မီ ရပ်တန့်လိုက်ပါပြီ။', 'sys');
+  }
 }
 
 document.addEventListener('keydown', (e) => {
