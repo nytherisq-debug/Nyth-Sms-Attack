@@ -33,9 +33,7 @@ html,body{
 }
 body{display:flex;align-items:center;justify-content:center;padding:12px}
 
-/* ============================================================
-   PREMIUM BACKGROUND
-   ============================================================ */
+/* PREMIUM BACKGROUND */
 #net{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.9}
 .bg-grid {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
@@ -93,9 +91,7 @@ body{display:flex;align-items:center;justify-content:center;padding:12px}
   mix-blend-mode: overlay;
 }
 
-/* ============================================================
-   BOOT
-   ============================================================ */
+/* BOOT */
 #boot{position:fixed;inset:0;z-index:99;background:var(--bg-dark);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
   transition:opacity .6s ease,visibility .6s ease}
@@ -108,9 +104,7 @@ body{display:flex;align-items:center;justify-content:center;padding:12px}
   animation:bootLoad 1.2s ease-in-out infinite}
 @keyframes bootLoad{0%{transform:translateX(-100%)}100%{transform:translateX(320%)}}
 
-/* ============================================================
-   SHELL (Glassmorphism)
-   ============================================================ */
+/* SHELL */
 .shell{position:relative;z-index:2;display:flex;flex-direction:column;
   width:100%;max-width:400px;
   height:auto;
@@ -150,7 +144,6 @@ body.running .shell{
   100% { box-shadow: 0 0 120px -10px rgba(56,189,248,.9); }
 }
 
-/* TAPPED ANIMATION */
 .shell.tapped { animation: shellTap 0.3s ease-out; }
 @keyframes shellTap { 0% { transform: scale(1); } 50% { transform: scale(0.98); } 100% { transform: scale(1); } }
 
@@ -168,9 +161,6 @@ body.running .corner{opacity:1;width:22px;height:22px;filter:drop-shadow(0 0 10p
 .header{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding-bottom:2px}
 .brand{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
 
-/* ============================================================
-   LOGO ANIMATIONS (N is moving!)
-   ============================================================ */
 .logo-box{position:relative;width:40px;height:40px;border-radius:12px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
   background:rgba(0,0,0,0.7);border:1px solid rgba(56,189,248,.5);
@@ -238,10 +228,8 @@ body.running .logo-box{border-color:var(--accent-cyan);box-shadow:0 0 30px 0 rgb
   color:#cbd5e1;letter-spacing:.05em;margin:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* Utilities Group (Music + Status) */
 .utilities{display:flex;align-items:center;gap:6px;flex-shrink:0}
 
-/* Music Widget */
 .music-widget{
   position:relative;width:32px;height:32px;
   display:flex;align-items:center;justify-content:center;
@@ -274,7 +262,6 @@ body.running .logo-box{border-color:var(--accent-cyan);box-shadow:0 0 30px 0 rgb
 
 @keyframes equalize{0%{height:3px;opacity:0.6}100%{height:14px;opacity:1}}
 
-/* Status Badge */
 .status-badge{
   display:flex;align-items:center;gap:5px;
   padding:5px 8px;border-radius:6px;
@@ -289,7 +276,6 @@ body.running .status-dot{background:var(--accent-cyan);box-shadow:0 0 10px var(-
 .status-text{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.08em;color:#cbd5e1}
 body.running .status-text{color:var(--accent-cyan)}
 
-/* PROGRESS */
 .arc-wrap{position:relative}
 .arc-ticks{display:flex;gap:2px;margin-bottom:4px;height:4px}
 .arc-ticks .tick{flex:1;background:rgba(255,255,255,.1);border-radius:1px;transition:all .3s}
@@ -309,7 +295,6 @@ body.running .status-text{color:var(--accent-cyan)}
   color:#cbd5e1;letter-spacing:.08em}
 .arc-meta strong{color:var(--text-main);font-weight:700}
 
-/* FORM */
 .form-group{display:flex;flex-direction:column;gap:10px}
 .input-group{position:relative;display:flex;flex-direction:column;gap:4px;min-width:0}
 .label-row{display:flex;justify-content:space-between;align-items:center;gap:4px}
@@ -360,7 +345,6 @@ label{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;
 
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
-/* BUTTONS */
 .actions{display:flex;gap:8px;margin-top:4px}
 .btn-primary{flex:1;padding:12px 8px;border-radius:10px;border:1px solid rgba(56,189,248,.6);
   background:linear-gradient(180deg,rgba(11,18,32,0.9),rgba(8,12,21,0.9));
@@ -377,18 +361,8 @@ label{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;
 .btn-primary.engine-active::after{animation:shine 1.5s infinite}
 @keyframes shine{100%{left:200%}}
 
-/* Ripple Effect */
-.ripple {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(56, 189, 248, 0.5);
-  transform: scale(0);
-  animation: ripple-anim 0.6s linear;
-  pointer-events: none;
-}
-@keyframes ripple-anim {
-  to { transform: scale(4); opacity: 0; }
-}
+.ripple {position: absolute;border-radius: 50%;background: rgba(56, 189, 248, 0.5);transform: scale(0);animation: ripple-anim 0.6s linear;pointer-events: none;}
+@keyframes ripple-anim {to { transform: scale(4); opacity: 0; }}
 
 .btn-danger{padding:12px 14px;border-radius:10px;border:1px solid rgba(244,63,94,.5);
   background:rgba(244,63,94,.15);color:var(--accent-rose);
@@ -398,7 +372,6 @@ label{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;
 .btn-danger:active:not(:disabled){transform:scale(.98)}
 .btn-danger:disabled{opacity:.2;cursor:not-allowed;transform:none}
 
-/* STATS */
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .stat-box{position:relative;padding:10px 12px;border-radius:10px;
   background:linear-gradient(180deg,rgba(5,8,16,.7),rgba(3,6,12,.5));
@@ -425,7 +398,6 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
 .stat-err .stat-underline::after{background:linear-gradient(90deg,var(--accent-rose),transparent)}
 @keyframes pulseBar{0%,100%{transform:scaleX(.3)}50%{transform:scaleX(1)}}
 
-/* LOG (Compact, Fixed Height) */
 .log-section{
   display:flex;flex-direction:column;
   margin-top:2px;
@@ -475,7 +447,6 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
   background:currentColor;margin-left:4px;animation:blinkCursor 1s step-end infinite;vertical-align:middle}
 @keyframes blinkCursor{50%{opacity:0}}
 
-/* MOBILE TWEAKS */
 @media (max-height:720px){
   .shell{padding:14px;gap:10px}
   .input-field{padding:8px 10px}
@@ -485,7 +456,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
 </head>
 <body>
 
-<!-- PREMIUM BG -->
+<!-- BG -->
 <canvas id="net"></canvas>
 <div class="bg-grid"></div>
 <div class="aurora aurora-1"></div>
@@ -496,7 +467,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
 <div class="light-beam b3"></div>
 <div class="scanlines"></div>
 
-<!-- HTML5 Audio Tag (Local) -->
+<!-- Audio -->
 <audio id="bgAudio" src="Nyth.mp3" loop preload="auto" playsinline></audio>
 
 <div id="boot">
@@ -538,7 +509,6 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
     </div>
     
     <div class="utilities">
-      <!-- Premium Music Widget -->
       <div class="music-widget" id="musicWidget" onclick="toggleMusic(event)">
         <div class="music-bars">
           <span></span><span></span><span></span><span></span><span></span>
@@ -638,14 +608,8 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
 <script>
 'use strict';
 
-// ==========================================
-// 🚀 RAILWAY BACKEND URL
-// ==========================================
 const BACKEND_URL = "https://nyth-sms-attack-production.up.railway.app";
 
-/* ============================================================
-   UI ANIMATIONS (Tap/Press effects)
-   ============================================================ */
 const mainShell = document.getElementById('mainShell');
 const buttons = document.querySelectorAll('.btn-primary, .btn-danger, .pill-btn');
 
@@ -667,9 +631,7 @@ buttons.forEach(btn => {
   });
 });
 
-/* ============================================================
-   AUDIO LOGIC
-   ============================================================ */
+/* AUDIO LOGIC */
 const audio = document.getElementById('bgAudio');
 const musicWidget = document.getElementById('musicWidget');
 let isPlaying = false;
@@ -711,9 +673,6 @@ function toggleMusic(event) {
   }
 }
 
-/* ============================================================
-   MAIN UI LOGIC
-   ============================================================ */
 setTimeout(() => document.getElementById('boot').classList.add('gone'), 1400);
 
 (() => {
@@ -725,7 +684,7 @@ setTimeout(() => document.getElementById('boot').classList.add('gone'), 1400);
   }
 })();
 
-/* Enhanced Interactive Particle Canvas */
+/* Particle Canvas */
 (() => {
   const c = document.getElementById('net');
   const ctx = c.getContext('2d');
@@ -763,7 +722,6 @@ setTimeout(() => document.getElementById('boot').classList.add('gone'), 1400);
   
   const tick = () => {
     ctx.clearRect(0, 0, w, h);
-    
     for (const p of pts) {
       if (touchX !== null) {
         const dx = p.x - touchX;
@@ -835,15 +793,17 @@ function setOperator(op) {
     b.classList.toggle('active', b.dataset.op === op);
   });
   
-  // Wave ကို ရွေးရင် အနည်းဆုံး ၂ စက္ကန့် သတ်မှတ်မယ်
+  // WAVE DELAY LOCK (အနည်းဆုံး ၂ စက္ကန့်)
   const delayInput = document.getElementById('delayInput');
   if (op === 'wave') {
     delayInput.min = "2";
-    if (parseFloat(delayInput.value) < 2) {
-      delayInput.value = "2.0";
-    }
+    delayInput.disabled = true; 
+    delayInput.style.opacity = "0.7";
+    delayInput.value = "2.0";
   } else {
     delayInput.min = "0";
+    delayInput.disabled = false;
+    delayInput.style.opacity = "1";
   }
 }
 
@@ -995,8 +955,6 @@ function startAutomation(event) {
     
     const i = currentIdx;
     
-    // ပို့ဆောင်နေပါသည် ဆိုတဲ့ စာသားကို ဖျောက်ထားပါတယ် (မပြဘူး)
-    
     let resObj = { success: false };
     
     try {
@@ -1027,15 +985,12 @@ function startAutomation(event) {
       const el = document.getElementById('successCount');
       animateNumber(el, success - 1, success);
       bump(el);
-      // အောင်မြင်တဲ့အခါမှ ပြမယ်
       logMsg(`Node #${i} | အောင်မြင်ပါသည် ✅`, 'success', i);
     } else {
-      // မအောင်မြင်ရင် ဘာမှ မပြဘူး
       dispatched++;
-      // အတွင်းပိုင်း Error စာရင်းထဲ ထည့်ထားမယ် (မပြဘူး)
-      const el = document.getElementById('failCount');
       fail++;
-      el.textContent = String(fail); 
+      const el = document.getElementById('failCount');
+      el.textContent = String(fail);
     }
     
     updateProgress(); tickEta();
